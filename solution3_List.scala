@@ -2,11 +2,6 @@ import fpinscala.datastructures.List
 
 object solution3_List{
 
-    // as match{
-    //     case Nil => Nil
-    //     case Cons(x,xs) => Cons(f(x), map(xs)(f))
-    // }
-
     private def msgGenerate(msg: String, addtion_msg: String, list_o: String, list_n: String): String = {
         var msg_ = "%s of List %s %s: %s."
         msg_.format(msg, addtion_msg, list_o, list_n)
