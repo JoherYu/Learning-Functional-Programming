@@ -65,6 +65,44 @@ object List {
     def combine[A](as1: List[A], as2: List[A], as3: List[A]) = foldRight(as1, foldRight(as2, as3)(Cons(_, _)))(Cons(_, _))
     def plus_1(as: List[Int]): List[Int] = foldRight(as, Nil: List[Int])((x, y) => Cons(x + 1, y))
     def mkString[A](as: List[A]): List[String] = foldRight(as, Nil: List[String])((x, y) => Cons(x.toString(), y))
+    def map[A,B](as: List[A])(f: A => B): List[B] = foldRight(as, Nil: List[B])((x, y) => Cons(f(x), y))
+    def filter[A](as: List[A])(f: A => Boolean): List[A] = 
+        foldRight(as, Nil: List[A])((x, y) => {
+            if(f(x)) Cons(x, y)
+            else y
+        })
+    def combine_2[A](as1: List[A], as2: List[A]) = foldRight(as1, as2)(Cons(_, _))
+    def flatMap[A,B](as: List[A])(f: A => List[B]): List[B] = {
+        foldRight(as,  Nil: List[B])((x, y) => combine_2(f(x), y))
+    }
+    def flatfilter[A](as: List[A])(f: A => Boolean): List[A] = flatMap(as)(
+        x => if(!f(x)) Nil
+             else Cons(x, Nil)
+    )
+
+    def add(as: List[Double], as2: List[Double]): List[Double] = as match {
+        case Nil => Nil
+        case Cons(x, xs) => as2 match {
+            case Nil => Nil
+            case Cons(e, es) => Cons(x + e, add(xs, es))
+        }
+    }
+    def zipWith[A](as: List[A], as2: List[A])(f: (A, A) => A): List[A] = as match {
+        case Nil => Nil
+        case Cons(x, xs) => as2 match {
+            case Nil => Nil
+            case Cons(e, es) => Cons(f(x, e), zipWith(xs, es)(f))
+        }
+    } 
+    def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = (sup, sub) match {
+        case (Nil, Nil) => true
+        case (_, Nil) => true
+        case (Nil, _) => false
+        case (Cons(h1, t1), Cons(h2, t2)) => {
+            if(h1 == h2) hasSubsequence(t1, t2)
+            else hasSubsequence(t1, sub)
+        }
+    }
 }
 
 
