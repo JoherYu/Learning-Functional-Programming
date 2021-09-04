@@ -1,3 +1,4 @@
+import Stream._
 trait Stream[+A] {
     def toList: List[A] = this match {
         case Empty => Nil
@@ -19,6 +20,25 @@ trait Stream[+A] {
         case Cons(x,xs) => if(p(x())) Cons(x, () => xs().takeWhile(p)) else Empty
     }
 
+    def foldRight[B](z: => B)(f: (A, => B) => B): B =
+        this match {
+            case Cons(h, t) => f(h(), t().foldRight(z)(f))
+            case _ => z
+        }
+
+    def forAll(p: A => Boolean): Boolean = foldRight(true)((a, b) => p(a) && b)
+    def takeWhile_f(p: A => Boolean): Stream[A] = foldRight(empty[A])((a, b) => if(p(a)) cons(a, b) else empty)
+    def headOption: Option[A] = foldRight(None: Option[A])((a, b) => Some(a))
+    def map[B](f: A => B): Stream[B] = foldRight(empty: Stream[B])((x, y) => cons(f(x), y))
+    def filter(f: A => Boolean): Stream[A] = 
+        foldRight(empty: Stream[A])((x, y) => {
+            if(f(x)) cons(x, y)
+            else y
+        })
+    def append[B>:A](x: => Stream[B]): Stream[B] = foldRight(x)((x, y) => cons(x, y))
+    def flatMap[B](f: A => Stream[B]): Stream[B] = {
+        foldRight(empty: Stream[B])((x, y) => f(x) append y)
+    }
 }
 
 case object Empty extends Stream[Nothing]
