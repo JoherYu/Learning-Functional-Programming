@@ -56,5 +56,16 @@ object Stream {
     def apply[A](as: A*): Stream[A] =
         if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
 
-    
+    def constant[A](a: A): Stream[A] = Stream.cons(a, constant(a))
+    def from(n: Int): Stream[Int] = Stream.cons(n, from(n + 1))
+    def fib: Stream[Int] = {
+        def go(a: Int,b: Int): Stream[Int] = {
+            cons(a, go(b, a+b))
+        }
+        go(0, 1)
+    }
+    def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = f(z) match {
+        case None => empty
+        case Some((a, b)) => cons(a, unfold(b)(f))
+    }
 }
