@@ -39,6 +39,27 @@ trait Stream[+A] {
     def flatMap[B](f: A => Stream[B]): Stream[B] = {
         foldRight(empty: Stream[B])((x, y) => f(x) append y)
     }
+
+    def map_u[B](f: A => B): Stream[B] = unfold(this){
+        case Cons(x, y) => Some((f(x()), y()))
+        case _ => None
+    } 
+    def take_u(n: Int): Stream[A] = unfold((this, n)){ 
+        case (Cons(x, xs), n) => if(n == 0) None else Some((x(), (xs(), n - 1)))
+        case _ => None
+    }
+    def takeWhile_u(p: A => Boolean): Stream[A] = unfold(this){
+        case Cons(x,xs) => if(p(x())) Some((x(), xs())) else None
+        case _ => None
+    }
+    def zipWith[B >: A](as: Stream[B])(f: (B, B) => B): Stream[B] = unfold(this, as){
+        case (Cons(x, xs), Cons(y, ys)) => Some((f(x(),y()), (xs(), ys())))
+        case _ => None
+    }
+    def tails: Stream[Stream[A]] = unfold(this){
+        case Cons(x, xs) => Some((this, xs()))
+        case _ => None
+    } append Stream(empty)
 }
 
 case object Empty extends Stream[Nothing]
@@ -68,4 +89,9 @@ object Stream {
         case None => empty
         case Some((a, b)) => cons(a, unfold(b)(f))
     }
+
+    def fib_u: Stream[Int] = unfold((0, 1)){case (x, y) => Some((x, (y, x+y)))}
+    def from_u(n: Int): Stream[Int] = unfold(n)(x => Some((x, x + 1)))
+    def constant_u[A](a: A): Stream[A] = unfold(a)(x => Some((x , x)))
+    def ones: Stream[Int] = unfold(1)(_ => Some((1 , 1)))
 }
