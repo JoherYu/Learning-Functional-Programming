@@ -51,5 +51,38 @@ object RNG {
                 (n::n1, nextRNG1)
             } 
         }
+    type Rand[+A] = RNG => (A, RNG)
+    def map[A,B](s: Rand[A])(f: A => B): Rand[B] = 
+        rng => {
+            val (a, rng2) = s(rng)
+            (f(a), rng2)
+        }
+
+    def double_m: Rand[Double] = map(nonNegativeInt)(n => n / (Int.MaxValue.toDouble + 1))
+
+    def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = 
+        rng => {
+            val (a1, rng1) = ra(rng)
+            val (a2, rng2) = rb(rng1)
+            (f(a1, a2), rng2)
+        }
+
+    def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = 
+        rng => {
+            val (a1, rng1) = f(rng)
+            g(a1)(rng1)
+        }    
+
+    def unit[A](a: A): Rand[A] = rng => (a, rng)
+
+    def nonNegativeLessThan(n: Int): Rand[Int] =
+        flatMap(nonNegativeInt) { i =>
+            val mod = i % n
+            if(i + (n - 1) - mod >= 0) unit(mod) else nonNegativeLessThan(n)
+
+        }
+
+    def map_f[A,B](s: Rand[A])(f: A => B): Rand[B] = flatMap(s)(i => unit(f(i)))
+    def map2_F[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = flatMap(ra)(a => map(rb)(b =>f(a, b)))
     }
 }
